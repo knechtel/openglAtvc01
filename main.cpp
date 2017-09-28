@@ -22,13 +22,23 @@
 #include <time.h>
 #define GL_LOG_FILE "gl.log"
 #include <math.h>
-
+float angulo =1;
 // keep track of window size for things like the viewport and the mouse cursor
 int g_gl_width = 800;
 int g_gl_height = 600;
 GLFWwindow *g_window = NULL;
 
+
+
 int main() {
+    
+    GLfloat matrix[] = {
+        1.0f,0.0f, 0.0f, 0.0f, // first column
+        0.0f, 1.0f, 0.0f, 0.0f, // second column
+        0.0f, 0.0f, 1.0f, 0.0f, // third column
+        0.0f, 0.0f, 0.5f, 1.0f	// fourth column
+    };
+    
 	restart_gl_log();
 	// all the GLFW and GLEW start-up code is moved to here in gl_utils.cpp
 	start_gl();
@@ -36,6 +46,8 @@ int main() {
 	glEnable( GL_DEPTH_TEST ); // enable depth-testing
 	glDepthFunc( GL_LESS );		 // depth-testing interprets a smaller value as "closer"
 
+    
+    
 	/* OTHER STUFF GOES HERE NEXT */
 	GLfloat points[] = { 0.0f, 0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, -0.5f, 0.0f };
 
@@ -63,9 +75,13 @@ int main() {
 
 	char vertex_shader[1024 * 256];
 	char fragment_shader[1024 * 256];
+    
+    
 	parse_file_into_str( "test_vs.glsl", vertex_shader, 1024 * 256 );
 	parse_file_into_str( "test_fs.glsl", fragment_shader, 1024 * 256 );
-
+    
+    
+    
 	GLuint vs = glCreateShader( GL_VERTEX_SHADER );
 	const GLchar *p = (const GLchar *)vertex_shader;
 	glShaderSource( vs, 1, &p, NULL );
@@ -106,14 +122,12 @@ int main() {
 		return false;
 	}
 
-	GLfloat matrix[] = {
-        1.0f,0.0f, 0.0f, 0.0f, // first column
-		0.0f, 1.0f, 0.0f, 0.0f, // second column
-		0.0f, 0.0f, 1.0f, 0.0f, // third column
-		0.0f, 0.0f, 0.5f, 1.0f	// fourth column
-	};
+    
+    
+    int matrix_location = glGetUniformLocation( shader_programme, "matrix" );
 
-	int matrix_location = glGetUniformLocation( shader_programme, "matrix" );
+
+
 	glUseProgram( shader_programme );
 	glUniformMatrix4fv( matrix_location, 1, GL_FALSE, matrix );
 
@@ -128,6 +142,8 @@ int main() {
     float scale  = 1.0;
 	float speed = 1.0f; // move at 1 unit per second
 	float last_position = 0.0f;
+    
+    
 	while ( !glfwWindowShouldClose( g_window ) ) {
 		// add a timer for doing animation
 		static double previous_seconds = glfwGetTime();
@@ -193,26 +209,26 @@ int main() {
      
         
         if ( glfwGetKey( g_window, GLFW_KEY_P ) ) {
-            angulo++;
-            
-           // points[1] = points[1]- points[1];
-           // points[3] = points[3]- points[3];
-           // points[4] = points[4] + points[4];
-           // points[6] = points[6] + points[6];
-          //  points[7] = points[7] + points[7];
+            angulo=angulo+0.01;
+        
             float speedT = 0.02;
             float last_position1= 0;
-            matrix[0] = cos(angulo)  *scale +( elapsed_seconds * speedT  ) ;
-            matrix[1] = -sin(angulo) *scale +( elapsed_seconds  * speedT );
-            matrix[4] = sin(angulo)  *scale +( elapsed_seconds * speedT  );
-            matrix[5] = cos(angulo)  *scale +( elapsed_seconds * speedT  );
+           
+            matrix[0] = cos(angulo)  ;
+            matrix[1] = -sin(angulo) ;
+            matrix[4] = sin(angulo)   ;
+            matrix[5] = cos(angulo)  ;
             
             
+            printf("matrix[0] = %f \n",matrix[0]);
             
+            if ( fabs( last_position ) > 1.0 ) {
+                speed = -speed;
+            }
             
             //last_position = matrix[7];
             glUniformMatrix4fv( matrix_location, 1, GL_FALSE, matrix );
-            printf("doTranslation");
+           
         }
         
         if ( glfwGetKey( g_window, GLFW_KEY_O ) ) {
@@ -228,21 +244,9 @@ int main() {
             
             //last_position = matrix[7];
             glUniformMatrix4fv( matrix_location, 1, GL_FALSE, matrix );
-            printf("doTranslation");
         }
         
-        if ( glfwGetKey( g_window, GLFW_KEY_L) ) {
-          
-            scale = 1.5;
-            
-            matrix[0] = scale;
-            matrix[5] = scale;
-            matrix[11] = scale;
-         
-            
-
-            glUniformMatrix4fv( matrix_location, 1, GL_FALSE, matrix );
-        }
+   
         
         if ( glfwGetKey( g_window, GLFW_KEY_M) ) {
             scale= 1.0;
